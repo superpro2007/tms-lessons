@@ -4,7 +4,7 @@
 
 
 def get_longest_word(text: str) -> str:
-    dlinnoe_word = ""
+    dlinnoe_word =str()
     slova = text.split()
     for slovo in slova:
         if len(slovo) > len(dlinnoe_word):

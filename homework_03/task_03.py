@@ -11,3 +11,8 @@ for year in range(1, years_num + 1):
     sum_rub = sum_rub * 1.1
    
 print(int(sum_rub))
+
+
+x=float(input())
+y=int(input())
+print(x+1.1**y)
