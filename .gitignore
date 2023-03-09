@@ -2,3 +2,4 @@
 .idea
 __pycache__
 data.json
+/homework_14/task_01/db.sqlite
