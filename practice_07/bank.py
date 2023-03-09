@@ -1,6 +1,7 @@
-import random
-import json
 import os
+import random
+import sqlite3
+
 
 # 1. Создайте функцию get_random_digits, которое принимает целое число count (количество цифр),
 # и возвращает строку, сгенерированную из count рандомных цифр от нуля до девяти
@@ -24,7 +25,7 @@ def get_random_digits(count: int) -> str:
 
 class BankAccount:
     def __init__(
-        self, card_holder: str, money=0, account_number=None, card_number=None
+            self, card_holder: str, money=0, account_number=None, card_number=None
     ) -> None:
         self.card_holder = card_holder.upper()
         self.money = money
@@ -55,15 +56,20 @@ class Bank:
     # типом dict[str, BankAccount] (словарь, где ключом является номер счёта, а значением - объект BankAccount).
     # # Изначально данное поле - пустой словарь.
     def __init__(self) -> None:
+        with sqlite3.connect('db.sqlite') as connection:
+            connection.execute("CREATE TABLE IF NOT EXISTS account( id INTEGER PRIMARY KEY autoincrement, "
+                               "card_holder varchar,money integer, account_number varchar, card_number varchar)")
+            connection.execute('CREATE UNIQUE INDEX IF NOT EXISTS my_index ON account(account_number)')
         self.__bank_accounts: dict[str, BankAccount] = dict()
         self.load_accounts()
-        
+
     # 1.3 Добавьте метод open_account:Метод принимает один аргумент - card_holder
     # Создаёт новый банковский счёт и сохраняет его в поле bank_accounts
     # Возвращает (return) созданный счёт.
     def open_account(self, card_holder: str) -> str:
         account = BankAccount(card_holder)
         self.__bank_accounts[account.account_number] = account
+        self.save_accounts()
         return account.account_number
 
     # 1.4 Добавьте метод add_money:
@@ -81,7 +87,7 @@ class Bank:
     # to_account_number (номер счёта-получателя), money. Снимает деньги со счёта-отправителя.
     # Добавляет деньги на счёт-получателя.
     def transfer_money(
-        self, from_account_number: str, to_account_number: str, money: int
+            self, from_account_number: str, to_account_number: str, money: int
     ) -> None:
         from_account: BankAccount = self.__bank_accounts[from_account_number]
         to_account: BankAccount = self.__bank_accounts[to_account_number]
@@ -96,7 +102,7 @@ class Bank:
     # Снимает деньги со счёта-отправител. Мы не настоящий банк, поэтому просто пишем в консоль
     # "Банк перевёл xxx$ с вашего счёта XXXX на внешний счёт YYYY"
     def external_transfer(
-        self, from_account_number: str, to_external_number: str, money: int
+            self, from_account_number: str, to_external_number: str, money: int
     ):
         self.add_money(from_account_number, money * -1)
         print(
@@ -109,11 +115,11 @@ class Bank:
 
         for account_number in self.__bank_accounts:
             result = (
-                result
-                + account_number
-                + " - "
-                + str(self.__bank_accounts[account_number].money)
-                + "\n"
+                    result
+                    + account_number
+                    + " - "
+                    + str(self.__bank_accounts[account_number].money)
+                    + "\n"
             )
 
         return result
@@ -127,25 +133,32 @@ class Bank:
             account = self.__bank_accounts[account_number]
             accounts.append(account.convert_to_dict())
 
-        with open(file_name, "w") as file:
-            json.dump(accounts, file)
+        with sqlite3.connect('db.sqlite') as connection:
+            for account in accounts:
+                connection.execute("INSERT INTO account(card_holder, money, account_number, card_number ) "
+                                   f"VALUES('{account['card_holder']}', {account['money']}, "
+                                   f"'{account['account_number']}', '{account['card_number']}') "
+                                   f"ON CONFLICT(account_number) DO "
+                                   f"UPDATE SET card_holder = '{account['card_holder']}', money = {account['money']}")
 
     # 4.4.4 Создайте функцию load_accounts, которая принимает аргумент file_name (название файла)
     # и возвращает dict[str, BankAccount], загруженный из файла с помощью библиотеки json.
     def load_accounts(self, file_name: str = "data.json") -> dict[str, BankAccount]:
         if os.path.exists(file_name) == False:
             return {}
-            
-        with open(file_name, "r") as file:
-            accounts = json.load(file)
-            for account in accounts:
+
+        with sqlite3.connect('db.sqlite') as connection:
+            result = connection.execute("SELECT card_holder, money, account_number, card_number FROM account")
+            for account in result.fetchall():
                 bank_account = BankAccount(
-                    account["card_holder"],
-                    account["money"],
-                    account["card_number"],
-                    account["account_number"],
+                    account[0],
+                    account[1],
+                    account[2],
+                    account[3],
                 )
                 self.__bank_accounts[bank_account.account_number] = bank_account
+
+        return self.__bank_accounts
 
 
 # 2.1 Создайте класс Controller
@@ -194,7 +207,7 @@ class Controller:
     def transfer_external(self):
         a = input("vvedite schet otpravitelya")
         b = input("vvedite vneshnii schet")
-        c = input("vvedite symmu perevoda")
+        c = int(input("vvedite symmu perevoda"))
         self.__bank.external_transfer(a, b, c)
         print("perevod yspeh")
 
