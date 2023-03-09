@@ -3,7 +3,7 @@ from contact_list import ContactList
 if __name__ == '__main__':
     contact_list = ContactList()
     while True:
-        command = input('0. Выйти из программы\n'
+        command = input('\n0. Выйти из программы\n'
                         '1. Добавить новый контакт\n'
                         '2. Вывести весь список контактов в алфавитном порядке\n'
                         '3. Обновить номер контакта\n\n')
@@ -16,6 +16,8 @@ if __name__ == '__main__':
             print('contact added\n')
 
         elif command == '2':
-            print('Вывести весь список контактов в алфавитном порядке')
+            contact_list.show_contacts()
+
+
         elif command == '3':
             print('Обновить номер контакта')
