@@ -16,4 +16,6 @@ class ContactList():
             for contact in result.fetchall():
                 print(f'{contact[0]} - {contact[1]}')
 
-
+    def update_contact(self, name: str, number: str):
+        with sqlite3.connect('db.sqlite') as connection:
+            connection.execute(f"Update contact SET number = '{number}' WHERE name = '{name}'")

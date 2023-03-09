@@ -20,4 +20,7 @@ if __name__ == '__main__':
 
 
         elif command == '3':
-            print('Обновить номер контакта')
+            name = input('input name\n')
+            number = input('input number\n')
+            contact_list.update_contact(name, number)
+            print('contact updated')
