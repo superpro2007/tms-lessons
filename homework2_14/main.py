@@ -3,7 +3,14 @@ def ask_for_product():
     proteins = input('enter proteins amount: \n')
     fats = input('enter fats amount: \n')
     carbohydrates = input('enter carbohydrates amount: \n')
-    print(f'{product_name}, {proteins}, {fats}, {carbohydrates}')
+    product = {
+        'name': product_name,
+        'proteins': proteins,
+        'fats': fats,
+        'carbohydrates': carbohydrates
+    }
+    return product
 
 if __name__ == "__main__":
-    ask_for_product()
+    product = ask_for_product()
+    print(product)
